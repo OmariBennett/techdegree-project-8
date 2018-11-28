@@ -1,13 +1,15 @@
+'use strict';
 const gulp = require('gulp'),
-	  useref = require('gulp-useref'),//delete this
-	  gulpif = require('gulp-if'),
-	  maps = require('gulp-sourcemaps'),
-	  sass = require('gulp-sass'),
-	  uglify = require('gulp-uglify'),
 	  concat = require('gulp-concat'),
+	  maps = require('gulp-sourcemaps'),
+	  uglify = require('gulp-uglify'),
 	  rename = require('gulp-rename'),
+	  sass = require('gulp-sass'),
 	  cleanCSS =require('gulp-clean-css'),
-	  imagemin = require('gulp-imagemin');
+	  imagemin = require('gulp-imagemin'),
+	  del = require('del');
+
+sass.compiler = require('node-sass');
 
 const options = { src: 'src', dist: 'dist' };
 
@@ -28,6 +30,12 @@ gulp.task('scripts', ['concatScripts'], () => {
 		.pipe(gulp.dest(`${options.dist}/js`));
 });
 
+gulp.task('sass', () => {
+	return gulp.src(`${options.src}/sass/**/*.scss`)
+		.pipe(sass())
+		.pipe(gulp.dest(`${options.dist}/css`));
+});
+
 gulp.task('styles', () => {
 // Compile SCSS into CSS with the source map
 	gulp.src(`${options.src}/sass/global.scss`)
@@ -43,5 +51,24 @@ gulp.task('images', () => {
 // Optimize the file size in the images folder
 	gulp.src(`${options.src}/images/*`)
 		.pipe(imagemin())
-        .pipe(gulp.dest(`${options.dist}/images`))
+        .pipe(gulp.dest(`${options.dist}/content`))
+});
+
+gulp.task('watch', () => {
+//Wacth the javaScripts and Sass files
+	gulp.watch(`${options.src}/sass/**/*.scss`, ['styles']);
+	gulp.watch(`${options.src}/js/**/*.js`, ['scripts']);
+});
+
+gulp.task('clean', () => {
+// Delete the dist file or older build
+	return del(options.dist);
+});
+
+gulp.task('build', ['clean'], () => {
+	gulp.start(['scripts', 'styles', 'images']);
+});
+
+gulp.task('default', ['build'], () => {
+	gulp.start('watch');
 });
