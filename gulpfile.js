@@ -27,13 +27,13 @@ gulp.task('scripts', ['concatScripts'], () => {
 		.pipe(uglify())
 		.pipe(rename('all.min.js'))
 		.pipe(maps.write(`./`))
-		.pipe(gulp.dest(`${options.dist}/js`));
+		.pipe(gulp.dest(`${options.dist}/scripts`));
 });
 
 gulp.task('sass', () => {
 	return gulp.src(`${options.src}/sass/**/*.scss`)
 		.pipe(sass())
-		.pipe(gulp.dest(`${options.dist}/css`));
+		.pipe(gulp.dest(`${options.dist}/styles`));
 });
 
 gulp.task('styles', () => {
@@ -44,7 +44,7 @@ gulp.task('styles', () => {
 		.pipe(cleanCSS())
 		.pipe(rename('all.min.css'))
 		.pipe(maps.write('./'))
-		.pipe(gulp.dest(`${options.dist}/css`));
+		.pipe(gulp.dest(`${options.dist}/styles`));
 });
 
 gulp.task('images', () => {
