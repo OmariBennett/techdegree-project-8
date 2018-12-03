@@ -7,17 +7,21 @@ const gulp = require('gulp'),
 	  sass = require('gulp-sass'),
 	  cleanCSS =require('gulp-clean-css'),
 	  imagemin = require('gulp-imagemin'),
-	  del = require('del');
+	  del = require('del'),
+	  connect = require('gulp-connect');
 
 sass.compiler = require('node-sass');
 
 const options = { src: 'src', dist: 'dist' };
 
+const scssFilePath = [`${options.src}/sass/**/*.scss`, `${options.src}/sass/**/**/*.sass`];
+
 gulp.task('concatScripts', () => { 
 //Concat the javaScripts files
 	return gulp.src(`${options.src}/js/circle/*.js`)
 				.pipe(concat('global.js'))
-				.pipe(gulp.dest(`${options.src}/js`));
+				.pipe(gulp.dest(`${options.src}/js`))
+				.pipe(connect.reload());
 })
 
 gulp.task('scripts', ['concatScripts'], () => {
@@ -27,13 +31,15 @@ gulp.task('scripts', ['concatScripts'], () => {
 		.pipe(uglify())
 		.pipe(rename('all.min.js'))
 		.pipe(maps.write(`./`))
-		.pipe(gulp.dest(`${options.dist}/scripts`));
+		.pipe(gulp.dest(`${options.dist}/scripts`))
+		.pipe(connect.reload());
 });
 
 gulp.task('sass', () => {
 	return gulp.src(`${options.src}/sass/**/*.scss`)
 		.pipe(sass())
-		.pipe(gulp.dest(`${options.dist}/styles`));
+		.pipe(gulp.dest(`${options.dist}/styles`))
+		.pipe(connect.reload());
 });
 
 gulp.task('styles', () => {
@@ -44,7 +50,8 @@ gulp.task('styles', () => {
 		.pipe(cleanCSS())
 		.pipe(rename('all.min.css'))
 		.pipe(maps.write('./'))
-		.pipe(gulp.dest(`${options.dist}/styles`));
+		.pipe(gulp.dest(`${options.dist}/styles`))
+		.pipe(connect.reload());
 });
 
 gulp.task('images', () => {
@@ -54,10 +61,11 @@ gulp.task('images', () => {
         .pipe(gulp.dest(`${options.dist}/content`))
 });
 
-gulp.task('watch', () => {
-//Wacth the javaScripts and Sass files
-	gulp.watch(`${options.src}/sass/**/*.scss`, ['styles']);
-	gulp.watch(`${options.src}/js/**/*.js`, ['scripts']);
+gulp.task('html', () => {
+// Place the HTML file in the dist folder
+	gulp.src(`${options.src}/index.html`)
+		.pipe(gulp.dest(options.dist))
+		.pipe(connect.reload());
 });
 
 gulp.task('clean', () => {
@@ -65,8 +73,23 @@ gulp.task('clean', () => {
 	return del(options.dist);
 });
 
+gulp.task('watch', ['server'], () => {
+//Wacth the HTML, javaScripts, and Sass files
+	gulp.watch(scssFilePath , ['styles']);
+	gulp.watch(`${options.src}/js/**/*.js`, ['scripts']);
+	gulp.watch(`${options.src}/*.html`, ['html']);
+});
+
+gulp.task('server', () => { //localhost server
+ 	return connect.server({
+    root: options.dist,
+    port: 3000,
+    livereload: true
+  });
+});
+
 gulp.task('build', ['clean'], () => {
-	gulp.start(['scripts', 'styles', 'images']);
+	gulp.start(['html', 'scripts', 'styles', 'images']);
 });
 
 gulp.task('default', ['build'], () => {
